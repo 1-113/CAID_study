@@ -5,15 +5,15 @@ import networkx as nx
 import random
 
 # 网络中对象数量
-N = 5
+N = 20
 
 a = 0.5
 
 # 初始随机生成强连通网络
-G = nx.gnm_random_graph(N, N - 1)
+G = nx.gnm_random_graph(N, N * N / 5)
 while not nx.is_connected(G):
-    rand1 = random.randint(0, N-1)
-    rand2 = random.randint(0, N-1)
+    rand1 = random.randint(0, N - 1)
+    rand2 = random.randint(0, N - 1)
     if rand1 != rand2:
         G.add_edge(rand1, rand2)
 
@@ -39,20 +39,22 @@ x = np.random.rand(N)
 
 # 网络的邻接矩阵表示
 m = nx.to_numpy_array(G)
-#print(m)
+# print(m)
 
 convergence_val = np.mean(x)
 dx = np.zeros(N)
 
+# 记录x每次迭代的值
 x_record = [x.copy()]
 
 # 边的权重
 p = np.zeros((N, N))
 
-#网络中对象的度
-degree =  [G.degree(n) for n in G.nodes()]
-print(degree)
+# 网络中对象的度
+degree = [G.degree(n) for n in G.nodes()]
 
+
+# print(degree)
 
 
 def iteration():
@@ -61,18 +63,17 @@ def iteration():
         for j in range(N):
             f[i] += m[i][j] * ((payoff_matrix_CAIPD[0] - payoff_matrix_CAIPD[1] - payoff_matrix_CAIPD[2] +
                                 payoff_matrix_CAIPD[3]) * x[i] * x[j] + (
-                                           payoff_matrix_CAIPD[1] - payoff_matrix_CAIPD[3]) * x[j] + (
-                                           payoff_matrix_CAIPD[2] - payoff_matrix_CAIPD[3]) * x[i] +
+                                       payoff_matrix_CAIPD[1] - payoff_matrix_CAIPD[3]) * x[j] + (
+                                       payoff_matrix_CAIPD[2] - payoff_matrix_CAIPD[3]) * x[i] +
                                payoff_matrix_CAIPD[3])
 
     for i in range(N):
         for j in range(N):
             delta_f[i][j] = f[i] - f[j]
 
-
     for i in range(N):
         for j in range(N):
-            p[i][j] = delta_f[j][i]
+            p[i][j] = m[i][j] * (0.5 / (1 + math.exp(-abs(delta_f[j][i]))) / degree[j])
     # print("p_matrix:", p)
 
     dx_total = 0
@@ -82,7 +83,7 @@ def iteration():
             dx[i] += p[i][j] * np.sign(x[j] - x[i]) * (abs(x[j] - x[i]) ** a)
         dx[i] = dx[i] / degree[i]
         dx_total += dx[i]
-    # print(dx_total)
+    print(dx_total)
 
     for i in range(N):
         x[i] += dx[i]
@@ -102,10 +103,12 @@ def are_elements_converged(array, target_value, tolerance=1e-3):
 
 
 k = 0
-while not are_elements_converged(x, convergence_val) and k < 1:
+while not are_elements_converged(x, convergence_val) and k < 50:
     iteration()
     k += 1
-    print(delta_f)
+
+# print(delta_f)
+
 
 if are_elements_converged(x, convergence_val):
     print(f"在有限时间内收敛，迭代次数为:{k}!")
@@ -113,6 +116,11 @@ else:
     print("无法在有限时间内收敛！")
 
 x_iteration_matrix = np.array(x_record)
+# print("x_record:", x_record)
+# # for arr in x_record:
+# #     print(arr.shape)
+# #     print(arr.dtype)
+# print("x_iteration_matrix:", x_iteration_matrix)
 
 # fig = plt.figure(figsize=(8, 5))
 for i in range(N):
