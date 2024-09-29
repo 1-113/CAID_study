@@ -5,9 +5,10 @@ import networkx as nx
 import random
 
 # 网络中对象数量
-N = 20
+N = 50
 
 a = 0.5
+iteration_limit = 200
 
 # 初始随机生成强连通网络
 G = nx.gnm_random_graph(N, N * N / 5)
@@ -18,14 +19,12 @@ while not nx.is_connected(G):
         G.add_edge(rand1, rand2)
 
 # 绘制图形
+plt.figure(1)
 pos = nx.spring_layout(G)  # 为图形设置布局
 nx.draw(G, pos, node_size=700, edge_color='k', linewidths=1, font_size=15)
 
 # 在图中标注节点序号
 nx.draw_networkx_labels(G, pos)
-
-# 显示图形
-plt.show()
 
 payoff_matrix_CAIPD = [4, -1, 5, 0]
 payoff_matrix_CAISD = [4.5, 4, 5, 0]
@@ -36,6 +35,7 @@ delta_f = np.zeros((N, N))
 
 # 初始随机生成对象的状态
 x = np.random.rand(N)
+# print(x)
 
 # 网络的邻接矩阵表示
 m = nx.to_numpy_array(G)
@@ -56,8 +56,9 @@ degree = [G.degree(n) for n in G.nodes()]
 
 # print(degree)
 
-
-def iteration():
+# CAIPD迭代函数
+def caipd_iteration():
+    # 适应度计算
     for i in range(N):
         f[i] = 0
         for j in range(N):
@@ -67,10 +68,12 @@ def iteration():
                                        payoff_matrix_CAIPD[2] - payoff_matrix_CAIPD[3]) * x[i] +
                                payoff_matrix_CAIPD[3])
 
+    # 适应度差值
     for i in range(N):
         for j in range(N):
             delta_f[i][j] = f[i] - f[j]
 
+    # 权重计算
     for i in range(N):
         for j in range(N):
             p[i][j] = m[i][j] * (0.5 / (1 + math.exp(-abs(delta_f[j][i]))) / degree[j])
@@ -83,13 +86,51 @@ def iteration():
             dx[i] += p[i][j] * np.sign(x[j] - x[i]) * (abs(x[j] - x[i]) ** a)
         dx[i] = dx[i] / degree[i]
         dx_total += dx[i]
-    print(dx_total)
+    # print(dx_total)
 
     for i in range(N):
         x[i] += dx[i]
-    x_record.append(x.copy())
+    x_record.append(x.copy())  # 保存迭代结果
 
 
+# CAISD迭代函数
+def caisd_iteration():
+    # 适应度计算
+    for i in range(N):
+        f[i] = 0
+        for j in range(N):
+            f[i] += m[i][j] * ((payoff_matrix_CAISD[0] - payoff_matrix_CAISD[1] - payoff_matrix_CAISD[2] +
+                                payoff_matrix_CAISD[3]) * x[i] * x[j] + (
+                                       payoff_matrix_CAISD[1] - payoff_matrix_CAISD[3]) * x[j] + (
+                                       payoff_matrix_CAISD[2] - payoff_matrix_CAISD[3]) * x[i] +
+                               payoff_matrix_CAISD[3])
+
+    # 适应度差值
+    for i in range(N):
+        for j in range(N):
+            delta_f[i][j] = f[i] - f[j]
+
+    # 权重计算
+    for i in range(N):
+        for j in range(N):
+            p[i][j] = m[i][j] * (0.5 / (1 + math.exp(-abs(delta_f[j][i]))) / degree[j])
+    # print("p_matrix:", p)
+
+    dx_total = 0
+    for i in range(N):
+        dx[i] = 0
+        for j in range(N):
+            dx[i] += p[i][j] * np.sign(x[j] - x[i]) * (abs(x[j] - x[i]) ** a)
+        dx[i] = dx[i] / degree[i]
+        dx_total += dx[i]
+    # print(dx_total)
+
+    for i in range(N):
+        x[i] += dx[i]
+    x_record.append(x.copy())  # 保存迭代结果
+
+
+# 收敛判断函数
 def are_elements_converged(array, target_value, tolerance=1e-3):
     """
     判断数组中的所有元素是否都收敛到了给定值的附近。
@@ -102,31 +143,45 @@ def are_elements_converged(array, target_value, tolerance=1e-3):
     return np.all(np.abs(array - target_value) < tolerance)
 
 
+# 迭代运行
 k = 0
-while not are_elements_converged(x, convergence_val) and k < 50:
-    iteration()
+while k < iteration_limit:
+    caipd_iteration()
     k += 1
 
-# print(delta_f)
-
-
+# 收敛结果展示
 if are_elements_converged(x, convergence_val):
-    print(f"在有限时间内收敛，迭代次数为:{k}!")
+    print(f"在有限时间内收敛!")
 else:
     print("无法在有限时间内收敛！")
 
-x_iteration_matrix = np.array(x_record)
-# print("x_record:", x_record)
-# # for arr in x_record:
-# #     print(arr.shape)
-# #     print(arr.dtype)
-# print("x_iteration_matrix:", x_iteration_matrix)
 
-# fig = plt.figure(figsize=(8, 5))
-for i in range(N):
-    plt.plot(x_iteration_matrix[:, i])
-
-plt.xlabel("iteration")
+# 绘制CAIPD迭代收敛图像
+plt.figure(2)
+plt.plot(x_record)
+plt.xlabel("iterations")
 plt.ylabel("x value")
-plt.title("CAID_test")
+plt.title("CAIPD_test")
+
+x_record = [x_record[0]]
+x = x_record[0].copy()
+# print(x)
+
+k = 0
+while k < iteration_limit:
+    caisd_iteration()
+    k += 1
+
+if are_elements_converged(x, convergence_val):
+    print(f"在有限时间内收敛!")
+else:
+    print("无法在有限时间内收敛！")
+
+# 绘制CAISD迭代收敛图像
+plt.figure(3)
+plt.plot(x_record)
+plt.xlabel("iterations")
+plt.ylabel("x value")
+plt.title("CAISD_test")
+
 plt.show()
