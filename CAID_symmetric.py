@@ -4,11 +4,15 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import random
 
+# 设置随机种子
+random.seed(42)  # 设置Python内置随机种子
+np.random.seed(42)  # 设置numpy随机种子
+
 # 网络中对象数量
 N = 50
 
 a = 0.5
-iteration_limit = 200
+iteration_limit = 125
 
 # 初始随机生成强连通网络
 G = nx.gnm_random_graph(N, N * N / 5)
@@ -155,17 +159,49 @@ if are_elements_converged(x, convergence_val):
 else:
     print("无法在有限时间内收敛！")
 
-
 # 绘制CAIPD迭代收敛图像
-plt.figure(2)
-plt.plot(x_record)
-plt.xlabel("iterations")
-plt.ylabel("x value")
-plt.title("CAIPD_test")
+plt.figure(2, dpi=300)
+plt.plot(x_record, linewidth=0.8)
+plt.xlabel("Iterations")
+plt.ylabel("Player's strategy value (x)")
+# plt.text(0.01, 0.5, 'The strategy x of players', horizontalalignment='left', verticalalignment='center', transform=plt.gca().transAxes)
+plt.title("BA-CAID convergence under the Prisoner's Dilemma")
+
+# 调整坐标轴显示
+ax = plt.gca()
+ax.tick_params(
+    direction='in',  # 刻度线朝内
+    length=4,  # 刻度线长度
+    width=0.7,  # 刻度线粗细
+    pad=7,  # 刻度标签与坐标轴的间距
+    labelsize=10, # 保持标签在外侧
+    top = True,
+    right = True
+)
+
+# 获取当前坐标轴的范围
+x_min, x_max = ax.get_xlim()
+y_min, y_max = ax.get_ylim()
+ax.set_yticks(np.arange(0, np.ceil(y_max * 10) / 10, 0.1))
+
+# 设置坐标轴位置和边界
+ax.spines['left'].set_position('zero')
+ax.spines['left'].set_bounds(0, y_max)
+
+ax.spines['bottom'].set_position('zero')
+ax.spines['bottom'].set_bounds(0, x_max)
+
+ax.spines['right'].set_position(('data', x_max))
+ax.spines['right'].set_bounds(0, y_max)
+
+ax.spines['top'].set_position(('data', y_max))
+ax.spines['top'].set_bounds(0, x_max)
+
+# 保存图像至指定路径
+plt.savefig('/Volumes/SN770/研究生文件/CAID/figure/CAIPD_convergence.png', bbox_inches='tight')
 
 x_record = [x_record[0]]
 x = x_record[0].copy()
-# print(x)
 
 k = 0
 while k < iteration_limit:
@@ -178,10 +214,43 @@ else:
     print("无法在有限时间内收敛！")
 
 # 绘制CAISD迭代收敛图像
-plt.figure(3)
-plt.plot(x_record)
-plt.xlabel("iterations")
-plt.ylabel("x value")
-plt.title("CAISD_test")
+plt.figure(3, dpi=300)
+plt.plot(x_record, linewidth=0.8)
+plt.xlabel("Iterations")
+plt.ylabel("Player's strategy value (x)")
+plt.title("BA-CAID convergence under the Snowdrift Dilemma")
+
+# 调整坐标轴显示
+ax = plt.gca()
+ax.tick_params(
+    direction='in',  # 刻度线朝内
+    length=4,  # 刻度线长度
+    width=0.7,  # 刻度线粗细
+    pad=7,  # 刻度标签与坐标轴的间距
+    labelsize=10, # 保持标签在外侧
+    top = True,
+    right = True
+)
+
+# 获取当前坐标轴的范围
+x_min, x_max = ax.get_xlim()
+y_min, y_max = ax.get_ylim()
+ax.set_yticks(np.arange(0, np.ceil(y_max * 10) / 10, 0.1))
+
+# 设置坐标轴位置和边界
+ax.spines['left'].set_position('zero')
+ax.spines['left'].set_bounds(0, y_max)
+
+ax.spines['bottom'].set_position('zero')
+ax.spines['bottom'].set_bounds(0, x_max)
+
+ax.spines['right'].set_position(('data', x_max))
+ax.spines['right'].set_bounds(0, y_max)
+
+ax.spines['top'].set_position(('data', y_max))
+ax.spines['top'].set_bounds(0, x_max)
+
+# 保存图像至指定路径
+plt.savefig('/Volumes/SN770/研究生文件/CAID/figure/CAISD_convergence.png', bbox_inches='tight')
 
 plt.show()

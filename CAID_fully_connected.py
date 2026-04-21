@@ -46,7 +46,7 @@ def iteration():
             dx[i] += p[i][j] * np.sign(x[j] - x[i]) * (abs(x[j] - x[i]) ** a)
         dx[i] = dx[i] / N
         dx_total += dx[i]
-    print(dx_total)
+    #print(dx_total)
 
     for i in range(N):
         x[i] += dx[i]
