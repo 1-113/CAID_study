@@ -2,7 +2,7 @@
 
 ## Full experiment reproduction
 
-Repository: https://github.com/1-113/CAID_study.git. The Section 4 source code and this README are in `major_revision_version/`. Dependencies: Python, NumPy, SciPy, NetworkX, Matplotlib. Recorded versions: 3.13.12, 1.26.4, 1.17.1, 3.6.1, 3.10.9, respectively.
+Dependencies: Python, NumPy, SciPy, NetworkX, Matplotlib. Recorded versions: 3.13.12, 1.26.4, 1.17.1, 3.6.1, 3.10.9, respectively.
 
 ```sh
 git clone https://github.com/1-113/CAID_study.git
